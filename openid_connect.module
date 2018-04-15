@@ -107,14 +107,20 @@ function openid_connect_form_user_profile_form_alter(&$form, &$form_state) {
 }
 
 /**
- * Saves user profile information into a user account.
+ * Save user profile information into a user account.
  *
  * @param \Drupal\user\UserInterface $account
  *   An user account object.
- * @param array $userinfo
- *   An array with information about the user.
+ * @param array $context
+ *   An associative array with context information:
+ *   - tokens:         An array of tokens.
+ *   - user_data:      An array of user and session data.
+ *   - userinfo:       An array of user information.
+ *   - plugin_id:      The plugin identifier.
+ *   - sub:            The remote user identifier.
  */
-function openid_connect_save_userinfo(UserInterface $account, array $userinfo) {
+function openid_connect_save_userinfo(UserInterface $account, array $context) {
+  $userinfo = $context['userinfo'];
   $properties = \Drupal::entityManager()->getFieldDefinitions('user', 'user');
   $properties_skip = _openid_connect_user_properties_to_skip();
   foreach ($properties as $property_name => $property) {
@@ -188,6 +194,12 @@ function openid_connect_save_userinfo(UserInterface $account, array $userinfo) {
   if (isset($userinfo['name'])) {
     \Drupal::service('user.data')->set('openid_connect', $account->id(), 'oidc_name', $userinfo['name']);
   }
+
+  // Allow other modules to add additional user information.
+  \Drupal::moduleHandler()->invokeAll('openid_connect_save_userinfo', [
+    $account,
+    $context,
+  ]);
 
   $account->save();
 }
@@ -461,7 +473,15 @@ function openid_connect_complete_authorization($client, array $tokens, &$destina
   if ($account) {
     // An existing account was found. Save user claims.
     if (\Drupal::config('openid_connect.settings')->get('always_save_userinfo')) {
-      openid_connect_save_userinfo($account, $userinfo);
+      $context = [
+        'tokens' => $tokens,
+        'plugin_id' => $client->getPluginId(),
+        'user_data' => $user_data,
+        'userinfo' => $userinfo,
+        'sub' => $sub,
+        'is_new' => FALSE,
+      ];
+      openid_connect_save_userinfo($account, $context);
     }
   }
   else {
@@ -532,7 +552,15 @@ function openid_connect_complete_authorization($client, array $tokens, &$destina
     }
 
     // Store the newly created account.
-    openid_connect_save_userinfo($account, $userinfo);
+    $context = [
+      'tokens' => $tokens,
+      'plugin_id' => $client->getPluginId(),
+      'user_data' => $user_data,
+      'userinfo' => $userinfo,
+      'sub' => $sub,
+      'is_new' => TRUE,
+    ];
+    openid_connect_save_userinfo($account, $context);
     $authmap->createAssociation($account, $client->getPluginId(), $sub);
   }
 

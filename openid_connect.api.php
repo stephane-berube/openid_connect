@@ -104,3 +104,43 @@ function hook_openid_connect_post_authorize(array $tokens, UserInterface $accoun
  */
 function hook_openid_connect_pre_authorize(array $tokens, UserInterface $account, array $userinfo, $plugin_id, $sub) {
 }
+
+/**
+ * Save userinfo hook.
+ *
+ * This hook runs after the claim mappings have been applied by the OpenID
+ * Connect module, but before the account will be saved.
+ *
+ * A popular use case for this hook is mapping additional information like
+ * user roles or other complex claims provided by the identity provider, that
+ * the OpenID Connect module has no mapping mechanisms for.
+ *
+ * @param \Drupal\user\UserInterface $account
+ *   A user account object.
+ * @param array $context
+ *   An associative array with context information:
+ *   - tokens:         Array of original tokens.
+ *   - user_data:      Array of user and session data from the ID token.
+ *   - userinfo:       Array of user information from the userinfo endpoint.
+ *   - plugin_id:      The plugin identifier.
+ *   - sub:            The remote user identifier.
+ *   - is_new:         Whether the account was created during authorization.
+ *
+ * @ingroup openid_connect_api
+ */
+function hook_openid_connect_save_userinfo(UserInterface $account, array $context) {
+  // Update only when the required information is available.
+  if (
+    $context['plugin_id'] != 'generic'
+    || empty($context['userinfo']['my_info'])
+  ) {
+    return;
+  }
+
+  // Note: For brevity, this example does not validate field
+  // types, nor does it implement error handling.
+  $my_info = $context['userinfo']['my_info'];
+  foreach ($my_info as $key => $value) {
+    $account->set('field_' . $key, $value);
+  }
+}
