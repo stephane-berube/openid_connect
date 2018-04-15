@@ -9,48 +9,48 @@
  * Implements hook_schema().
  */
 function openid_connect_schema() {
-  $schema['openid_connect_authmap'] = array(
+  $schema['openid_connect_authmap'] = [
     'description' => 'Stores OpenID Connect authentication mapping.',
-    'fields' => array(
-      'aid' => array(
+    'fields' => [
+      'aid' => [
         'description' => 'Primary Key: Unique authmap ID.',
         'type' => 'serial',
         'unsigned' => TRUE,
         'not null' => TRUE,
-      ),
-      'uid' => array(
+      ],
+      'uid' => [
         'type' => 'int',
         'not null' => TRUE,
         'default' => 0,
         'description' => "User's {users}.uid.",
-      ),
-      'client_name' => array(
+      ],
+      'client_name' => [
         'type' => 'varchar',
         'length' => 255,
         'not null' => TRUE,
         'default' => '',
         'description' => 'The client name.',
-      ),
-      'sub' => array(
+      ],
+      'sub' => [
         'type' => 'varchar',
         'length' => 255,
         'not null' => TRUE,
         'default' => '',
         'description' => 'Unique subject identifier.',
-      ),
-    ),
-    'primary key' => array('aid'),
-    'indexes' => array(
-      'uid' => array('uid'),
-      'identifier' => array('client_name', 'sub'),
-    ),
-    'foreign keys' => array(
-      'user' => array(
+      ],
+    ],
+    'primary key' => ['aid'],
+    'indexes' => [
+      'uid' => ['uid'],
+      'identifier' => ['client_name', 'sub'],
+    ],
+    'foreign keys' => [
+      'user' => [
         'table' => 'users',
-        'columns' => array('uid' => 'uid'),
-      ),
-    ),
-  );
+        'columns' => ['uid' => 'uid'],
+      ],
+    ],
+  ];
 
   return $schema;
 }

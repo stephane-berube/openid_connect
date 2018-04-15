@@ -160,24 +160,24 @@ class SettingsForm extends ConfigFormBase implements ContainerInjectionInterface
       '#default_value' => $settings->get('always_save_userinfo'),
     ];
 
-    $form['connect_existing_users'] = array(
+    $form['connect_existing_users'] = [
       '#type' => 'checkbox',
       '#title' => $this->t('Automatically connect existing users'),
       '#description' => $this->t('If disabled, authentication will fail for existing email addresses.'),
       '#default_value' => $settings->get('connect_existing_users'),
-    );
+    ];
 
     $form['userinfo_mappings'] = [
       '#title' => $this->t('User claims mapping'),
       '#type' => 'fieldset',
     ];
 
-    $form['override_registration_settings'] = array(
+    $form['override_registration_settings'] = [
       '#type' => 'checkbox',
       '#title' => $this->t('Override registration settings'),
       '#description' => $this->t('If enabled, user creation will always be allowed, even if the registration setting is set to require admin approval, or only allowing admins to create users.'),
       '#default_value' => $settings->get('override_registration_settings'),
-    );
+    ];
 
     $properties = $this->entityFieldManager->getFieldDefinitions('user', 'user');
     $properties_skip = _openid_connect_user_properties_to_skip();
