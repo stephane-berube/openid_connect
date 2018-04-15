@@ -18,7 +18,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  *  admin_label = @Translation("OpenID Connect login"),
  * )
  */
-class LoginBlock extends BlockBase implements ContainerFactoryPluginInterface {
+class OpenIDConnectLoginBlock extends BlockBase implements ContainerFactoryPluginInterface {
 
   /**
    * Drupal\openid_connect\Plugin\OpenIDConnectClientManager definition.
@@ -92,7 +92,7 @@ class LoginBlock extends BlockBase implements ContainerFactoryPluginInterface {
    * {@inheritdoc}
    */
   public function build() {
-    return $this->formBuilder->getForm('Drupal\openid_connect\Form\LoginForm');
+    return $this->formBuilder->getForm('Drupal\openid_connect\Form\OpenIDConnectLoginForm');
   }
 
 }

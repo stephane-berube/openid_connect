@@ -8,11 +8,11 @@ use Drupal\Core\Extension\ModuleHandler;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
- * Class Claims.
+ * Class OpenIDConnectClaims.
  *
  * @package Drupal\openid_connect
  */
-class Claims implements ContainerInjectionInterface {
+class OpenIDConnectClaims implements ContainerInjectionInterface {
 
   /**
    * Drupal\Core\Config\ConfigFactory definition.
@@ -222,7 +222,7 @@ class Claims implements ContainerInjectionInterface {
       ->get('userinfo_mappings');
 
     $scopes = ['openid', 'email'];
-    $claims_info = Claims::getClaims();
+    $claims_info = OpenIDConnectClaims::getClaims();
     foreach ($claims as $claim) {
       if (isset($claims_info[$claim]) &&
           !isset($scopes[$claims_info[$claim]['scope']]) &&

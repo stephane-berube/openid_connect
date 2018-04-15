@@ -6,11 +6,11 @@ use Drupal\Core\Database\Connection;
 use Drupal\user\Entity\User;
 
 /**
- * Class Authmap.
+ * Class OpenIDConnectAuthmap.
  *
  * @package Drupal\openid_connect
  */
-class Authmap {
+class OpenIDConnectAuthmap {
 
   /**
    * The database connection.
@@ -20,7 +20,7 @@ class Authmap {
   protected $connection;
 
   /**
-   * Constructs a Authmap object.
+   * Constructs a OpenIDConnectAuthmap object.
    *
    * @param \Drupal\Core\Database\Connection $connection
    *   A database connection.

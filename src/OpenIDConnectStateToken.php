@@ -5,11 +5,11 @@ namespace Drupal\openid_connect;
 use Drupal\Component\Utility\Crypt;
 
 /**
- * Class StateToken.
+ * Class OpenIDConnectStateToken.
  *
  * @package Drupal\openid_connect
  */
-class StateToken {
+class OpenIDConnectStateToken {
 
   /**
    * Creates a state token and stores it in the session for later validation.

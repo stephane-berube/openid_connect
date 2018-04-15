@@ -9,18 +9,18 @@ use Drupal\Core\Routing\Access\AccessInterface;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\Url;
 use Drupal\openid_connect\Plugin\OpenIDConnectClientManager;
-use Drupal\openid_connect\StateToken;
+use Drupal\openid_connect\OpenIDConnectStateToken;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 /**
- * Class RedirectController.
+ * Class OpenIDConnectRedirectController.
  *
  * @package Drupal\openid_connect\Controller
  */
-class RedirectController extends ControllerBase implements AccessInterface {
+class OpenIDConnectRedirectController extends ControllerBase implements AccessInterface {
 
   /**
    * Drupal\openid_connect\Plugin\OpenIDConnectClientManager definition.
@@ -90,7 +90,7 @@ class RedirectController extends ControllerBase implements AccessInterface {
     // ensure that the user, not a malicious script, is making the request.
     $query = $this->requestStack->getCurrentRequest()->query;
     $state_token = $query->get('state');
-    if ($state_token && StateToken::confirm($state_token)) {
+    if ($state_token && OpenIDConnectStateToken::confirm($state_token)) {
       return AccessResult::allowed();
     }
     return AccessResult::forbidden();
