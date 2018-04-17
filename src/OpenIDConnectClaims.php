@@ -13,7 +13,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  *
  * @package Drupal\openid_connect
  */
-class Claims implements ContainerInjectionInterface {
+class OpenIDConnectClaims implements ContainerInjectionInterface {
   use StringTranslationTrait;
 
   /**
@@ -49,6 +49,7 @@ class Claims implements ContainerInjectionInterface {
     ConfigFactory $config_factory,
     ModuleHandler $module_handler
   ) {
+
     $this->configFactory = $config_factory;
     $this->moduleHandler = $module_handler;
   }

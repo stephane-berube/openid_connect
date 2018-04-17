@@ -4,13 +4,13 @@ services:
     parent: default_plugin_manager
 
   openid_connect.authmap:
-    class: Drupal\openid_connect\Authmap
+    class: Drupal\openid_connect\OpenIDConnectAuthmap
     arguments: ["@database", "@entity_type.manager"]
 
   openid_connect.claims:
-    class: Drupal\openid_connect\Claims
+    class: Drupal\openid_connect\OpenIDConnectClaims
     arguments: ["@config.factory", "@module_handler"]
 
   openid_connect.state_token:
-    class: Drupal\openid_connect\StateToken
+    class: Drupal\openid_connect\OpenIDConnectStateToken
     arguments: []

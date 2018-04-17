@@ -10,7 +10,7 @@ use Drupal\Core\Entity\EntityTypeManagerInterface;
  *
  * @package Drupal\openid_connect
  */
-class Authmap {
+class OpenIDConnectAuthmap {
 
   /**
    * The database connection.

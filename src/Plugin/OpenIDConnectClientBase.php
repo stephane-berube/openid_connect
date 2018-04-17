@@ -10,7 +10,7 @@ use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\Core\Routing\TrustedRedirectResponse;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\Core\Url;
-use Drupal\openid_connect\StateToken;
+use Drupal\openid_connect\OpenIDConnectStateToken;
 use Exception;
 use GuzzleHttp\ClientInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -182,7 +182,7 @@ abstract class OpenIDConnectClientBase extends PluginBase implements OpenIDConne
         'response_type' => 'code',
         'scope' => $scope,
         'redirect_uri' => $redirect_uri->getGeneratedUrl(),
-        'state' => StateToken::create(),
+        'state' => OpenIDConnectStateToken::create(),
       ],
     ];
 

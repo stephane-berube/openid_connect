@@ -312,7 +312,7 @@ function openid_connect_set_password_access($account) {
     return TRUE;
   }
 
-  /* @var \Drupal\openid_connect\Authmap $authmap */
+  /* @var \Drupal\openid_connect\OpenIDConnectAuthmap $authmap */
   $authmap = \Drupal::service('openid_connect.authmap');
   $connected_accounts = $authmap->getConnectedAccounts($account);
 
@@ -343,7 +343,7 @@ function _openid_connect_user_properties_to_skip() {
  *   The 'sub' property identifying the external account.
  */
 function openid_connect_connect_account($account, $client_name, $sub) {
-  /* @var \Drupal\openid_connect\Authmap $authmap */
+  /* @var \Drupal\openid_connect\OpenIDConnectAuthmap $authmap */
   $authmap = \Drupal::service('openid_connect.authmap');
   $authmap->createAssociation($account, $client_name, $sub);
 }
@@ -357,7 +357,7 @@ function openid_connect_connect_account($account, $client_name, $sub) {
  *   The client machine name.
  */
 function openid_connect_disconnect_account($account, $client_name) {
-  /* @var \Drupal\openid_connect\Authmap $authmap */
+  /* @var \Drupal\openid_connect\OpenIDConnectAuthmap $authmap */
   $authmap = \Drupal::service('openid_connect.authmap');
   $authmap->deleteAssociation($account->id(), $client_name);
 }
@@ -409,7 +409,7 @@ function openid_connect_complete_authorization($client, array $tokens, &$destina
     throw new \RuntimeException('User already logged in');
   }
 
-  /* @var \Drupal\openid_connect\Authmap $authmap */
+  /* @var \Drupal\openid_connect\OpenIDConnectAuthmap $authmap */
   $authmap = \Drupal::service('openid_connect.authmap');
   $user_data = $client->decodeIdToken($tokens['id_token']);
   $userinfo = $client->retrieveUserInfo($tokens['access_token']);
@@ -566,7 +566,7 @@ function openid_connect_connect_current_user($client, array $tokens) {
     throw new \RuntimeException('User not logged in');
   }
 
-  /* @var \Drupal\openid_connect\Authmap $authmap */
+  /* @var \Drupal\openid_connect\OpenIDConnectAuthmap $authmap */
   $authmap = \Drupal::service('openid_connect.authmap');
   $user_data = $client->decodeIdToken($tokens['id_token']);
   $userinfo = $client->retrieveUserInfo($tokens['access_token']);

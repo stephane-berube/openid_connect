@@ -5,16 +5,16 @@ namespace Drupal\openid_connect\Form;
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\openid_connect\Claims;
+use Drupal\openid_connect\OpenIDConnectClaims;
 use Drupal\openid_connect\Plugin\OpenIDConnectClientManager;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
- * Class LoginForm.
+ * Class OpenIDConnectLoginForm.
  *
  * @package Drupal\openid_connect\Form
  */
-class LoginForm extends FormBase implements ContainerInjectionInterface {
+class OpenIDConnectLoginForm extends FormBase implements ContainerInjectionInterface {
 
   /**
    * Drupal\openid_connect\Plugin\OpenIDConnectClientManager definition.
@@ -26,7 +26,7 @@ class LoginForm extends FormBase implements ContainerInjectionInterface {
   /**
    * The OpenID Connect claims.
    *
-   * @var \Drupal\openid_connect\Claims
+   * @var \Drupal\openid_connect\OpenIDConnectClaims
    */
   protected $claims;
 
@@ -35,12 +35,12 @@ class LoginForm extends FormBase implements ContainerInjectionInterface {
    *
    * @param \Drupal\openid_connect\Plugin\OpenIDConnectClientManager $plugin_manager
    *   The plugin manager.
-   * @param \Drupal\openid_connect\Claims $claims
+   * @param \Drupal\openid_connect\OpenIDConnectClaims $claims
    *   The OpenID Connect claims.
    */
   public function __construct(
       OpenIDConnectClientManager $plugin_manager,
-      Claims $claims
+      OpenIDConnectClaims $claims
   ) {
 
     $this->pluginManager = $plugin_manager;

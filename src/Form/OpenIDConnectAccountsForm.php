@@ -9,17 +9,17 @@ use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\Session\AccountProxy;
-use Drupal\openid_connect\Authmap;
-use Drupal\openid_connect\Claims;
+use Drupal\openid_connect\OpenIDConnectAuthmap;
+use Drupal\openid_connect\OpenIDConnectClaims;
 use Drupal\openid_connect\Plugin\OpenIDConnectClientManager;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
- * Class AccountsForm.
+ * Class OpenIDConnectAccountsForm.
  *
  * @package Drupal\openid_connect\Form
  */
-class AccountsForm extends FormBase implements ContainerInjectionInterface {
+class OpenIDConnectAccountsForm extends FormBase implements ContainerInjectionInterface {
 
   /**
    * Drupal\Core\Session\AccountProxy definition.
@@ -29,16 +29,16 @@ class AccountsForm extends FormBase implements ContainerInjectionInterface {
   protected $currentUser;
 
   /**
-   * Drupal\openid_connect\Authmap definition.
+   * Drupal\openid_connect\OpenIDConnectAuthmap definition.
    *
-   * @var \Drupal\openid_connect\Authmap
+   * @var \Drupal\openid_connect\OpenIDConnectAuthmap
    */
   protected $authmap;
 
   /**
-   * Drupal\openid_connect\Claims definition.
+   * Drupal\openid_connect\OpenIDConnectClaims definition.
    *
-   * @var \Drupal\openid_connect\Claims
+   * @var \Drupal\openid_connect\OpenIDConnectClaims
    */
   protected $claims;
 
@@ -61,9 +61,9 @@ class AccountsForm extends FormBase implements ContainerInjectionInterface {
    *
    * @param \Drupal\Core\Session\AccountProxy $current_user
    *   The current user account.
-   * @param \Drupal\openid_connect\Authmap $authmap
+   * @param \Drupal\openid_connect\OpenIDConnectAuthmap $authmap
    *   The authmap storage.
-   * @param \Drupal\openid_connect\Claims $claims
+   * @param \Drupal\openid_connect\OpenIDConnectClaims $claims
    *   The OpenID Connect claims.
    * @param \Drupal\openid_connect\Plugin\OpenIDConnectClientManager $plugin_manager
    *   The OpenID Connect client manager.
@@ -72,8 +72,8 @@ class AccountsForm extends FormBase implements ContainerInjectionInterface {
    */
   public function __construct(
       AccountProxy $current_user,
-      Authmap $authmap,
-      Claims $claims,
+      OpenIDConnectAuthmap $authmap,
+      OpenIDConnectClaims $claims,
       OpenIDConnectClientManager $plugin_manager,
       ConfigFactory $config_factory
   ) {

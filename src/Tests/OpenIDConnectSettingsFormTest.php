@@ -9,7 +9,7 @@ use Drupal\simpletest\WebTestBase;
  *
  * @group openid_connect
  */
-class SettingsFormTest extends WebTestBase {
+class OpenIDConnectSettingsFormTest extends WebTestBase {
 
   /**
    * Modules to enable.

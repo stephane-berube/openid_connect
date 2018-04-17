@@ -7,16 +7,16 @@ use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 use Drupal\Core\Entity\EntityFieldManagerInterface;
 use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\openid_connect\Claims;
+use Drupal\openid_connect\OpenIDConnectClaims;
 use Drupal\openid_connect\Plugin\OpenIDConnectClientManager;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
- * Class SettingsForm.
+ * Class OpenIDConnectSettingsForm.
  *
  * @package Drupal\openid_connect\Form
  */
-class SettingsForm extends ConfigFormBase implements ContainerInjectionInterface {
+class OpenIDConnectSettingsForm extends ConfigFormBase implements ContainerInjectionInterface {
 
   /**
    * Drupal\openid_connect\Plugin\OpenIDConnectClientManager definition.
@@ -35,7 +35,7 @@ class SettingsForm extends ConfigFormBase implements ContainerInjectionInterface
   /**
    * The OpenID Connect claims.
    *
-   * @var \Drupal\openid_connect\Claims
+   * @var \Drupal\openid_connect\OpenIDConnectClaims
    */
   protected $claims;
 
@@ -48,14 +48,14 @@ class SettingsForm extends ConfigFormBase implements ContainerInjectionInterface
    *   The plugin manager.
    * @param \Drupal\Core\Entity\EntityFieldManagerInterface $entity_field_manager
    *   The entity field manager.
-   * @param \Drupal\openid_connect\Claims $claims
+   * @param \Drupal\openid_connect\OpenIDConnectClaims $claims
    *   The claims.
    */
   public function __construct(
       ConfigFactoryInterface $config_factory,
       OpenIDConnectClientManager $plugin_manager,
       EntityFieldManagerInterface $entity_field_manager,
-      Claims $claims
+      OpenIDConnectClaims $claims
   ) {
     parent::__construct($config_factory);
     $this->pluginManager = $plugin_manager;
