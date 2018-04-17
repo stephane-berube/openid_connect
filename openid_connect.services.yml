@@ -5,7 +5,7 @@ services:
 
   openid_connect.authmap:
     class: Drupal\openid_connect\Authmap
-    arguments: ["@database"]
+    arguments: ["@database", "@entity_type.manager"]
 
   openid_connect.claims:
     class: Drupal\openid_connect\Claims

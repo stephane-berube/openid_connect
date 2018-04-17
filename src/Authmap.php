@@ -3,10 +3,10 @@
 namespace Drupal\openid_connect;
 
 use Drupal\Core\Database\Connection;
-use Drupal\user\Entity\User;
+use Drupal\Core\Entity\EntityTypeManagerInterface;
 
 /**
- * Class Authmap.
+ * The OpenID Connect authmap service.
  *
  * @package Drupal\openid_connect
  */
@@ -20,13 +20,23 @@ class Authmap {
   protected $connection;
 
   /**
-   * Constructs a Authmap object.
+   * The User entity storage.
+   *
+   * @var \Drupal\Core\Entity\EntityStorageInterface
+   */
+  protected $userStorage;
+
+  /**
+   * Constructs a OpenIDConnectAuthmap service object.
    *
    * @param \Drupal\Core\Database\Connection $connection
    *   A database connection.
+   * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
+   *   The entity manager.
    */
-  public function __construct(Connection $connection) {
+  public function __construct(Connection $connection, EntityTypeManagerInterface $entity_type_manager) {
     $this->connection = $connection;
+    $this->userStorage = $entity_type_manager->getStorage('user');
   }
 
   /**
@@ -85,7 +95,8 @@ class Authmap {
       ->condition('sub', $sub, '=')
       ->execute();
     foreach ($result as $record) {
-      $account = User::load($record->uid);
+      /* @var \Drupal\user\Entity\User $account */
+      $account = $this->userStorage->load($record->uid);
       if (is_object($account)) {
         return $account;
       }

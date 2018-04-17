@@ -54,12 +54,11 @@ class RedirectController extends ControllerBase implements AccessInterface {
    * {@inheritdoc}
    */
   public function __construct(
-      OpenIDConnectClientManager $plugin_manager,
-      RequestStack $request_stack,
-      LoggerChannelFactoryInterface $logger_factory,
-      AccountInterface $current_user
+    OpenIDConnectClientManager $plugin_manager,
+    RequestStack $request_stack,
+    LoggerChannelFactoryInterface $logger_factory,
+    AccountInterface $current_user
   ) {
-
     $this->pluginManager = $plugin_manager;
     $this->requestStack = $request_stack;
     $this->loggerFactory = $logger_factory;
@@ -169,7 +168,7 @@ class RedirectController extends ControllerBase implements AccessInterface {
         if ($parameters['op'] === 'login') {
           $success = openid_connect_complete_authorization($client, $tokens, $destination);
 
-          $register = \Drupal::config('user.settings')->get('register');
+          $register = $this->config('user.settings')->get('register');
           if (!$success && $register !== USER_REGISTER_ADMINISTRATORS_ONLY) {
             drupal_set_message($this->t('Logging in with @provider could not be completed due to an error.', $provider_param), 'error');
           }
