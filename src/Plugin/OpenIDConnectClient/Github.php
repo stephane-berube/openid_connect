@@ -99,13 +99,13 @@ class Github extends OpenIDConnectClientBase {
       }
 
       // GitHub names can be empty. Fall back to the login name.
-      if (empty($claims['name']) && isset($data['login'])) {
-        $claims['name'] = $data['login'];
+      if (empty($claims['name']) && isset($response_data['login'])) {
+        $claims['name'] = $response_data['login'];
       }
 
       // Convert the updated_at date to a timestamp.
-      if (!empty($data['updated_at'])) {
-        $claims['updated_at'] = strtotime($data['updated_at']);
+      if (!empty($response_data['updated_at'])) {
+        $claims['updated_at'] = strtotime($response_data['updated_at']);
       }
 
       // The email address is only provided in the User resource if the user has
