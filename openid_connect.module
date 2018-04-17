@@ -122,7 +122,7 @@ function openid_connect_form_user_profile_form_alter(&$form, &$form_state) {
 function openid_connect_save_userinfo(UserInterface $account, array $context) {
   $userinfo = $context['userinfo'];
   $properties = \Drupal::entityManager()->getFieldDefinitions('user', 'user');
-  $properties_skip = _openid_connect_user_properties_to_skip();
+  $properties_skip = _openid_connect_user_properties_to_skip($context);
   foreach ($properties as $property_name => $property) {
     if (isset($properties_skip[$property_name])) {
       continue;
@@ -347,14 +347,19 @@ function openid_connect_set_password_access($account) {
 
 /**
  * Returns user properties that can be skipped when mapping user profile info.
+ *
+ * @param array $context
+ *   Optional: Array with context information, if this function is called
+ *   within the context of user authorization.
+ *   Defaults to an empty array.
  */
-function _openid_connect_user_properties_to_skip() {
+function _openid_connect_user_properties_to_skip(array $context = []) {
   $properties_to_skip = [
     'uid', 'uuid', 'langcode', 'preferred_langcode', 'preferred_admin_langcode',
     'name', 'pass', 'mail', 'status', 'created', 'changed', 'access', 'login',
     'init', 'roles', 'default_langcode',
   ];
-  \Drupal::moduleHandler()->alter('openid_connect_user_properties_to_skip', $properties_to_skip);
+  \Drupal::moduleHandler()->alter('openid_connect_user_properties_to_skip', $properties_to_skip, $context);
   return array_combine($properties_to_skip, $properties_to_skip);
 }
 
@@ -441,6 +446,8 @@ function openid_connect_complete_authorization($client, array $tokens, &$destina
   $userinfo = $client->retrieveUserInfo($tokens['access_token']);
 
   $context = [
+    'tokens' => $tokens,
+    'plugin_id' => $client->getPluginId(),
     'user_data' => $user_data,
   ];
   \Drupal::moduleHandler()->alter('openid_connect_userinfo', $userinfo, $context);
@@ -464,8 +471,16 @@ function openid_connect_complete_authorization($client, array $tokens, &$destina
 
   /* @var \Drupal\user\UserInterface $account */
   $account = $authmap->userLoadBySub($sub, $client->getPluginId());
+  $context = [
+    'tokens' => $tokens,
+    'plugin_id' => $client->getPluginId(),
+    'user_data' => $user_data,
+    'userinfo' => $userinfo,
+    'sub' => $sub,
+  ];
   $results = \Drupal::moduleHandler()->invokeAll('openid_connect_pre_authorize', [
-    $tokens, $account, $userinfo, $client->getPluginId(), $sub,
+    $account,
+    $context,
   ]);
 
   // Deny access if any module returns FALSE.
@@ -580,6 +595,13 @@ function openid_connect_complete_authorization($client, array $tokens, &$destina
 
   openid_connect_login_user($account);
 
+  $context = [
+    'tokens' => $tokens,
+    'plugin_id' => $client->getPluginId(),
+    'user_data' => $user_data,
+    'userinfo' => $userinfo,
+    'sub' => $sub,
+  ];
   \Drupal::moduleHandler()->invokeAll(
     'openid_connect_post_authorize',
     [
@@ -608,12 +630,14 @@ function openid_connect_connect_current_user($client, array $tokens) {
     throw new \RuntimeException('User not logged in');
   }
 
-  /* @var \Drupal\openid_connect\OpenIDConnectAuthmap $authmap */
+  /* @var \Drupal\openid_connect\Authmap $authmap */
   $authmap = \Drupal::service('openid_connect.authmap');
   $user_data = $client->decodeIdToken($tokens['id_token']);
   $userinfo = $client->retrieveUserInfo($tokens['access_token']);
 
   $context = [
+    'tokens' => $tokens,
+    'plugin_id' => $client->getPluginId(),
     'user_data' => $user_data,
   ];
   \Drupal::moduleHandler()->alter('openid_connect_userinfo', $userinfo, $context);
@@ -638,12 +662,16 @@ function openid_connect_connect_current_user($client, array $tokens) {
 
   /* @var \Drupal\user\UserInterface $account */
   $account = $authmap->userLoadBySub($sub, $client->getPluginId());
+  $context = [
+    'tokens' => $tokens,
+    'plugin_id' => $client->getPluginId(),
+    'user_data' => $user_data,
+    'userinfo' => $userinfo,
+    'sub' => $sub,
+  ];
   $results = \Drupal::moduleHandler()->invokeAll('openid_connect_pre_authorize', [
-    $tokens,
     $account,
-    $userinfo,
-    $client->getPluginId(),
-    $sub,
+    $context,
   ]);
 
   // Deny access if any module returns FALSE.
@@ -674,13 +702,28 @@ function openid_connect_connect_current_user($client, array $tokens) {
 
   $always_save_userinfo = \Drupal::config('openid_connect.settings')->get('always_save_userinfo');
   if ($always_save_userinfo) {
-    openid_connect_save_userinfo($account, $userinfo);
+    $context = [
+      'tokens' => $tokens,
+      'plugin_id' => $client->getPluginId(),
+      'user_data' => $user_data,
+      'userinfo' => $userinfo,
+      'sub' => $sub,
+    ];
+    openid_connect_save_userinfo($account, $context);
   }
 
+  $context = [
+    'tokens' => $tokens,
+    'plugin_id' => $client->getPluginId(),
+    'user_data' => $user_data,
+    'userinfo' => $userinfo,
+    'sub' => $sub,
+  ];
   \Drupal::moduleHandler()->invokeAll(
     'openid_connect_post_authorize',
     [
-      $tokens, $account, $userinfo, $client->getPluginId(),
+      $account,
+      $context,
     ]
   );
 

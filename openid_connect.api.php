@@ -25,7 +25,14 @@ function hook_openid_connect_claims_alter(array &$claims) {
 }
 
 /**
- * Alter hook to alter OpenID Connect client plugins.
+ * Alter the OpenID Connect client plugins information.
+ *
+ * This hook is called after all OpenID Connect client plugins were
+ * discovered.
+ *
+ * Popular use cases for this hook are programmatically adding plugin
+ * definitions or overriding methods of existing plugins by changing their
+ * plugin class to a custom class.
  *
  * @param array $client_info
  *   An array of client information.
@@ -48,61 +55,130 @@ function hook_openid_connect_openid_connect_client_info_alter(array &$client_inf
 }
 
 /**
- * Alter hook to alter the user properties to be skipped for mapping.
+ * Alter the user properties to be skipped for mapping.
+ *
+ * This hook is called before OpenID Connect maps the user information from the
+ * identity provider with the Drupal user account.
+ *
+ * A popular use for this hook is to prevent properties from being mapped for
+ * certain identity providers.
  *
  * @param array $properties_to_skip
  *   An array of of properties to skip.
+ * @param array $context
+ *   An empty array for the OpenID Connect settings form, or an associative
+ *   array with context information, if the hook is invoked during user
+ *   authorization:
+ *   - tokens:         An array of tokens.
+ *   - user_data:      An array of user and session data from the ID token.
+ *   - userinfo:       An array of user information from the userinfo endpoint.
+ *   - plugin_id:      The plugin identifier.
+ *   - sub:            The remote user identifier.
  *
  * @ingroup openid_connect_api
  */
-function hook_openid_connect_user_properties_to_skip_alter(array &$properties_to_skip) {
+function hook_openid_connect_user_properties_to_skip_alter(array &$properties_to_skip, array $context) {
   // Allow to map the username to a property from the provider.
-  unset($properties_to_skip['name']);
+  if ($context['plugin_id'] == 'generic') {
+    unset($properties_to_skip['name']);
+  }
 }
 
 /**
- * Alter hook to alter userinfo before authorization or connecting a user.
+ * Alter the user information provided by the identity provider.
+ *
+ * This hook is called after the user information has been fetched from the
+ * identity provider's userinfo endpoint, and before authorization or
+ * connecting a user takes place.
+ *
+ * Popular use cases for this hook are providing additional user information,
+ * or 'translating' information from a format used by the identity provider
+ * to a format that can be used by the OpenID Connect claim mapping.
  *
  * @param array $userinfo
- *   An array of returned user information.
+ *   Array of returned user information from the identity provider.
  * @param array $context
- *   - user_data: An array of user_data.
+ *   An associative array with context information:
+ *   - tokens:      An array of tokens.
+ *   - user_data:   An array of user and session information from the ID token.
+ *   - plugin_id:   The plugin identifier.
+ *
+ * @ingroup openid_connect_api
  */
 function hook_openid_connect_userinfo_alter(array &$userinfo, array $context) {
+  // Add some custom information.
+  if ($context['plugin_id'] == 'generic') {
+    $userinfo['my_info'] = [
+      'full_name' => $userinfo['first_name'] . ' ' . $userinfo['last_name'],
+      'remarks' => 'Information provided by generic client plugin.',
+    ];
+  }
 }
 
 /**
- * Post authorize hook that runs after the user logged in via OpenID Connect.
+ * OpenID Connect pre authorize hook.
  *
- * @param array $tokens
- *   An array of tokens.
- * @param \Drupal\user\UserInterface $account
- *   A user account object.
- * @param array $userinfo
- *   An array of user information.
- * @param string $plugin_id
- *   The plugin identifier.
+ * This hook runs before a user is authorized and before any claim mappings
+ * take place.
+ *
+ * Popular use cases for this hook are overriding the user account that shall
+ * be authorized, or checking certain constraints before authorization and
+ * distinctively allowing/denying authorization for the given account.
+ *
+ * @param \Drupal\user\UserInterface|bool $account
+ *   User account identified using the "sub" provided by the identity provider,
+ *   or FALSE, if no such account exists.
+ * @param array $context
+ *   An associative array with context information:
+ *   - tokens:         An array of tokens.
+ *   - user_data:      An array of user and session data.
+ *   - userinfo:       An array of user information.
+ *   - plugin_id:      The plugin identifier.
+ *   - sub:            The remote user identifier.
+ *
+ * @return \Drupal\user\UserInterface|bool
+ *   A user account for a certain user to authorize, FALSE, if the user shall
+ *   not be logged in, or TRUE for successful hook execution.
  *
  * @ingroup openid_connect_api
  */
-function hook_openid_connect_post_authorize(array $tokens, UserInterface $account, array $userinfo, $plugin_id) {
+function hook_openid_connect_pre_authorize($account, array $context) {
+  // Allow access only for users with the role 'elevated'.
+  if (($account && $account->hasRole('elevated')) || (
+    $context['plugin_id'] == 'generic'
+    && isset($context['userinfo']['roles'])
+    && in_array('elevated', $context['userinfo']['roles'])
+  )) {
+    return TRUE;
+  }
+
+  // Deny all other users.
+  return FALSE;
 }
 
 /**
- * Pre authorize hook that runs before a user is authorized.
+ * OpenID Connect post authorize hook.
  *
- * @param array $tokens
- *   An array of tokens.
+ * This hook runs after a user has been authorized and claims have been mapped
+ * to the user's account.
+ *
+ * A popular use case for this hook is to saving token and additional identity
+ * provider related information to the user's Drupal session (private temp
+ * store).
+ *
  * @param \Drupal\user\UserInterface $account
- *   A user account object.
- * @param array $userinfo
- *   An array of user information.
- * @param string $plugin_id
- *   The plugin identifier.
- * @param string $sub
- *   The remote user identifier.
+ *   User account object of the authorized user.
+ * @param array $context
+ *   An associative array with context information:
+ *   - tokens:         An array of tokens.
+ *   - user_data:      An array of user and session data.
+ *   - userinfo:       An array of user information.
+ *   - plugin_id:      The plugin identifier.
+ *   - sub:            The remote user identifier.
+ *
+ * @ingroup openid_connect_api
  */
-function hook_openid_connect_pre_authorize(array $tokens, UserInterface $account, array $userinfo, $plugin_id, $sub) {
+function hook_openid_connect_post_authorize(UserInterface $account, array $context) {
 }
 
 /**
