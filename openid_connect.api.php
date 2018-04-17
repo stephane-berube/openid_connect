@@ -106,6 +106,45 @@ function hook_openid_connect_pre_authorize(array $tokens, UserInterface $account
 }
 
 /**
+ * Userinfo claim alter hook.
+ *
+ * This hook runs for every IdP provided userinfo claim mapped to a user
+ * property, just before the OpenID Connect module maps its value to the
+ * user property.
+ *
+ * A popular use for this hook is preprocessing claim values from a certain
+ * IdP to match the property type of the target user property.
+ *
+ * @param mixed $claim_value
+ *   The claim value.
+ * @param array $context
+ *   An context array containing:
+ *   - claim:            The current claim.
+ *   - property_name:    The property the claim is mapped to.
+ *   - property_type:    The property type the claim is mapped to.
+ *   - userinfo_mapping: The complete userinfo mapping.
+ *   - tokens:           Array of original tokens.
+ *   - user_data:        Array of user and session data from the ID token.
+ *   - userinfo:         Array of user information from the userinfo endpoint.
+ *   - plugin_id:        The plugin identifier.
+ *   - sub:              The remote user identifier.
+ *   - is_new:           Whether the account was created during authorization.
+ */
+function hook_openid_connect_userinfo_claim_alter(&$claim_value, array $context) {
+  // Alter only, when the claim comes from the 'generic' identiy provider and
+  // the property is 'telephone'.
+  if (
+    $context['plugin_id'] != 'generic'
+    || $context['property_name'] != 'telephone'
+  ) {
+    return;
+  }
+
+  // Replace international number indicator with double zero.
+  str_replace('+', '00', $claim_value);
+}
+
+/**
  * Save userinfo hook.
  *
  * This hook runs after the claim mappings have been applied by the OpenID
@@ -128,7 +167,7 @@ function hook_openid_connect_pre_authorize(array $tokens, UserInterface $account
  *
  * @ingroup openid_connect_api
  */
-function hook_openid_connect_save_userinfo(UserInterface $account, array $context) {
+function hook_openid_connect_userinfo_save(UserInterface $account, array $context) {
   // Update only when the required information is available.
   if (
     $context['plugin_id'] != 'generic'
