@@ -149,7 +149,7 @@ class RedirectController extends ControllerBase implements AccessInterface {
       ])) {
         // If we have an one of the above errors, that means the user hasn't
         // granted the authorization for the claims.
-        drupal_set_message(t('Logging in with @provider has been canceled.', $provider_param), 'warning');
+        drupal_set_message($this->t('Logging in with @provider has been canceled.', $provider_param), 'warning');
       }
       else {
         // Any other error should be logged. E.g. invalid scope.
@@ -159,7 +159,7 @@ class RedirectController extends ControllerBase implements AccessInterface {
         ];
         $message = 'Authorization failed: @error. Details: @details';
         $this->loggerFactory->get('openid_connect_' . $client_name)->error($message, $variables);
-        drupal_set_message(t('Could not authenticate with @provider.', $provider_param), 'error');
+        drupal_set_message($this->t('Could not authenticate with @provider.', $provider_param), 'error');
       }
     }
     else {
@@ -171,7 +171,7 @@ class RedirectController extends ControllerBase implements AccessInterface {
 
           $register = \Drupal::config('user.settings')->get('register');
           if (!$success && $register !== USER_REGISTER_ADMINISTRATORS_ONLY) {
-            drupal_set_message(t('Logging in with @provider could not be completed due to an error.', $provider_param), 'error');
+            drupal_set_message($this->t('Logging in with @provider could not be completed due to an error.', $provider_param), 'error');
           }
         }
         elseif ($parameters['op'] === 'connect' && $parameters['connect_uid'] === $this->currentUser->id()) {

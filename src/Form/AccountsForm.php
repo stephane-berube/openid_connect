@@ -119,11 +119,11 @@ class AccountsForm extends FormBase implements ContainerInjectionInterface {
     ];
 
     if (empty($clients)) {
-      $form['help']['#markup'] = t('No external account providers are available.');
+      $form['help']['#markup'] = $this->t('No external account providers are available.');
       return $form;
     }
     elseif ($this->currentUser->id() == $user->id()) {
-      $form['help']['#markup'] = t('You can connect your account with these external providers.');
+      $form['help']['#markup'] = $this->t('You can connect your account with these external providers.');
     }
 
     $connected_accounts = $this->authmap->getConnectedAccounts($user);
@@ -148,7 +148,7 @@ class AccountsForm extends FormBase implements ContainerInjectionInterface {
         '#markup' => $this->t('Not connected'),
       ];
       if ($connected) {
-        $fieldset['status']['#markup'] = t('Connected as %sub', [
+        $fieldset['status']['#markup'] = $this->t('Connected as %sub', [
           '%sub' => $connected_accounts[$client['id']],
         ]);
         $fieldset['openid_connect_client_' . $client['id'] . '_disconnect'] = [
@@ -158,7 +158,7 @@ class AccountsForm extends FormBase implements ContainerInjectionInterface {
         ];
       }
       else {
-        $fieldset['status']['#markup'] = t('Not connected');
+        $fieldset['status']['#markup'] = $this->t('Not connected');
         $fieldset['openid_connect_client_' . $client['id'] . '_connect'] = [
           '#type' => 'submit',
           '#value' => $this->t('Connect with @client_title', ['@client_title' => $client['label']]),
@@ -179,7 +179,7 @@ class AccountsForm extends FormBase implements ContainerInjectionInterface {
     if ($op === 'disconnect') {
       $this->authmap->deleteAssociation($form_state->get('account')->id(), $client_name);
       $client = $this->pluginManager->getDefinition($client_name);
-      drupal_set_message(t('Account successfully disconnected from @client.', ['@client' => $client['label']]));
+      drupal_set_message($this->t('Account successfully disconnected from @client.', ['@client' => $client['label']]));
       return;
     }
 

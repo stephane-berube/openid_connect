@@ -199,7 +199,7 @@ class SettingsForm extends ConfigFormBase implements ContainerInjectionInterface
         '#description' => $property->getDescription(),
         '#options' => (array) $claims,
         '#empty_value' => 0,
-        '#empty_option' => t('- No mapping -'),
+        '#empty_option' => $this->t('- No mapping -'),
         '#default_value' => isset($mappings[$property_name]) ? $mappings[$property_name] : $default_value,
       ];
     }
