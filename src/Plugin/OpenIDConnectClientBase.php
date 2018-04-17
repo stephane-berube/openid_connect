@@ -3,6 +3,7 @@
 namespace Drupal\openid_connect\Plugin;
 
 use Drupal\Component\Plugin\PluginBase;
+use Drupal\Component\Utility\NestedArray;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Language\LanguageInterface;
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
@@ -77,6 +78,7 @@ abstract class OpenIDConnectClientBase extends PluginBase implements OpenIDConne
     $this->requestStack = $request_stack;
     $this->httpClient = $http_client;
     $this->loggerFactory = $logger_factory;
+    $this->setConfiguration($configuration);
   }
 
   /**
@@ -96,6 +98,40 @@ abstract class OpenIDConnectClientBase extends PluginBase implements OpenIDConne
       $container->get('http_client'),
       $container->get('logger.factory')
     );
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getConfiguration() {
+    return $this->configuration;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function setConfiguration(array $configuration) {
+    $this->configuration = NestedArray::mergeDeep(
+      $this->defaultConfiguration(),
+      $configuration
+    );
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function defaultConfiguration() {
+    return [
+      'client_id' => '',
+      'client_secret' => '',
+    ];
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function calculateDependencies() {
+    return [];
   }
 
   /**

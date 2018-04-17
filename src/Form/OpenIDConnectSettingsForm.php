@@ -128,7 +128,7 @@ class OpenIDConnectSettingsForm extends ConfigFormBase implements ContainerInjec
       /* @var \Drupal\openid_connect\Plugin\OpenIDConnectClientInterface $client */
       $client = $this->pluginManager->createInstance(
         $client_name,
-        $configuration
+        $configuration ?: []
       );
 
       $element = 'clients_enabled[' . $client_plugin['id'] . ']';

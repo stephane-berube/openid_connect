@@ -21,6 +21,17 @@ class Generic extends OpenIDConnectClientBase {
   /**
    * {@inheritdoc}
    */
+  public function defaultConfiguration() {
+    return [
+      'authorization_endpoint' => '',
+      'token_endpoint' => '',
+      'userinfo_endpoint' => '',
+    ] + parent::defaultConfiguration();
+  }
+
+  /**
+   * {@inheritdoc}
+   */
   public function buildConfigurationForm(array $form, FormStateInterface $form_state) {
     $form = parent::buildConfigurationForm($form, $form_state);
 
