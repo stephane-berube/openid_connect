@@ -62,7 +62,7 @@ function openid_connect_update_8101() {
   $config_factory = \Drupal::configFactory();
 
   $config = $config_factory->getEditable('openid_connect.settings.facebook');
-  $config->set('enabled', false);
+  $config->set('enabled', FALSE);
   $config->set('settings', [
     'client_id' => '',
     'client_secret' => '',
@@ -71,7 +71,7 @@ function openid_connect_update_8101() {
   $config->save(TRUE);
 
   $config = $config_factory->getEditable('openid_connect.settings.linkedin');
-  $config->set('enabled', false);
+  $config->set('enabled', FALSE);
   $config->set('settings', [
     'client_id' => '',
     'client_secret' => '',
@@ -86,7 +86,7 @@ function openid_connect_update_8102() {
   $config_factory = \Drupal::configFactory();
 
   $config = $config_factory->getEditable('openid_connect.settings.github');
-  $config->set('enabled', false);
+  $config->set('enabled', FALSE);
   $config->set('settings', [
     'client_id' => '',
     'client_secret' => '',
