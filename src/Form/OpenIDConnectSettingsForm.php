@@ -7,6 +7,7 @@ use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 use Drupal\Core\Entity\EntityFieldManagerInterface;
 use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Form\SubformState;
 use Drupal\openid_connect\OpenIDConnectClaims;
 use Drupal\openid_connect\Plugin\OpenIDConnectClientManager;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -38,6 +39,13 @@ class OpenIDConnectSettingsForm extends ConfigFormBase implements ContainerInjec
    * @var \Drupal\openid_connect\OpenIDConnectClaims
    */
   protected $claims;
+
+  /**
+   * OpenID Connect client plugins.
+   *
+   * @var \Drupal\openid_connect\Plugin\OpenIDConnectClientInterface[]
+   */
+  protected static $clients;
 
   /**
    * The constructor.
@@ -96,44 +104,31 @@ class OpenIDConnectSettingsForm extends ConfigFormBase implements ContainerInjec
     $settings = $this->configFactory()
       ->getEditable('openid_connect.settings');
 
-    $options = [];
-    foreach ($this->pluginManager->getDefinitions() as $client_plugin) {
-      $options[$client_plugin['id']] = $client_plugin['label'];
-    }
-    ksort($options);
-
-    $clients_enabled = [];
-    foreach ($this->pluginManager->getDefinitions() as $client_plugin) {
-      $enabled = $this->configFactory()
-        ->getEditable('openid_connect.settings.' . $client_plugin['id'])
-        ->get('enabled');
-      $clients_enabled[$client_plugin['id']] = (bool) $enabled ? $client_plugin['id'] : 0;
-    }
-
     $form['#tree'] = TRUE;
     $form['clients_enabled'] = [
       '#title' => $this->t('Enabled OpenID Connect clients'),
       '#description' => $this->t('Choose enabled OpenID Connect clients.'),
       '#type' => 'checkboxes',
-      '#options' => $options,
-      '#default_value' => $clients_enabled,
     ];
-    $definitions = $this->pluginManager->getDefinitions();
-    ksort($definitions);
-    foreach ($definitions as $client_name => $client_plugin) {
-      $configuration = $this->configFactory()
-        ->getEditable('openid_connect.settings.' . $client_name)
-        ->get('settings');
 
-      /* @var \Drupal\openid_connect\Plugin\OpenIDConnectClientInterface $client */
-      $client = $this->pluginManager->createInstance(
-        $client_name,
-        $configuration ?: []
-      );
+    $clients = $this->getClients();
+    $options = [];
+    $clients_enabled = [];
 
-      $element = 'clients_enabled[' . $client_plugin['id'] . ']';
-      $form['clients'][$client_plugin['id']] = [
-        '#title' => $client_plugin['label'],
+    foreach ($clients as $client_plugin) {
+      $plugin_definition = $client_plugin->getPluginDefinition();
+      $plugin_id = $plugin_definition['id'];
+      $plugin_label = $plugin_definition['label'];
+
+      $options[$plugin_id] = $plugin_label;
+      $enabled = $this->configFactory()
+        ->getEditable('openid_connect.settings.' . $plugin_id)
+        ->get('enabled');
+      $clients_enabled[$plugin_id] = (bool) $enabled ? $plugin_id : 0;
+
+      $element = 'clients_enabled[' . $plugin_id . ']';
+      $form['clients'][$plugin_id] = [
+        '#title' => $plugin_label,
         '#type' => 'fieldset',
         '#tree' => TRUE,
         '#states' => [
@@ -142,9 +137,13 @@ class OpenIDConnectSettingsForm extends ConfigFormBase implements ContainerInjec
           ],
         ],
       ];
-      $form['clients'][$client_plugin['id']]['settings'] = [];
-      $form['clients'][$client_plugin['id']]['settings'] += $client->buildConfigurationForm([], $form_state);
+      $form['clients'][$plugin_id]['settings'] = [];
+      $subform_state = SubformState::createForSubform($form['clients'][$plugin_id]['settings'], $form, $form_state);
+      $form['clients'][$plugin_id]['settings'] += $client_plugin->buildConfigurationForm($form['clients'][$plugin_id]['settings'], $subform_state);
     }
+
+    $form['clients_enabled']['#options'] = $options;
+    $form['clients_enabled']['#default_value'] = $clients_enabled;
 
     $form['override_registration_settings'] = [
       '#type' => 'checkbox',
@@ -212,6 +211,26 @@ class OpenIDConnectSettingsForm extends ConfigFormBase implements ContainerInjec
    */
   public function validateForm(array &$form, FormStateInterface $form_state) {
     parent::validateForm($form, $form_state);
+
+    // Get clients' enabled status.
+    $clients_enabled = $form_state->getValue('clients_enabled');
+    // Get client plugins.
+    $clients = $this->getClients();
+
+    // Trigger validation for enabled clients.
+    foreach ($clients_enabled as $plugin_id => $status) {
+      // Whether the client is not enabled.
+      if (!(bool) $status) {
+        continue;
+      }
+
+      // Get subform and subform state.
+      $subform = $form['clients'][$plugin_id]['settings'];
+      $subform_state = SubformState::createForSubform($subform, $form, $form_state);
+
+      // Let the plugin validate its form.
+      $clients[$plugin_id]->validateConfigurationForm($subform, $subform_state);
+    }
   }
 
   /**
@@ -226,24 +245,75 @@ class OpenIDConnectSettingsForm extends ConfigFormBase implements ContainerInjec
       ->set('override_registration_settings', $form_state->getValue('override_registration_settings'))
       ->set('userinfo_mappings', $form_state->getValue('userinfo_mappings'))
       ->save();
+
+    // Get clients' enabled status.
     $clients_enabled = $form_state->getValue('clients_enabled');
-    foreach ($clients_enabled as $client_name => $status) {
+    // Get client plugins.
+    $clients = $this->getClients();
+
+    // Save client settings.
+    foreach ($clients_enabled as $plugin_id => $status) {
       $this->configFactory()
-        ->getEditable('openid_connect.settings.' . $client_name)
+        ->getEditable('openid_connect.settings.' . $plugin_id)
         ->set('enabled', $status)
         ->save();
-      if ((bool) $status) {
-        $this->configFactory()
-          ->getEditable('openid_connect.settings.' . $client_name)
-          ->set('settings', $form_state->getValue([
-            'clients',
-            $client_name,
-            'settings',
-          ]))
-          ->save();
+
+      // Whether the client is not enabled.
+      if (!(bool) $status) {
+        continue;
       }
+
+      // Get subform and subform state.
+      $subform = $form['clients'][$plugin_id]['settings'];
+      $subform_state = SubformState::createForSubform($subform, $form, $form_state);
+
+      // Let the plugin preprocess submitted values.
+      $clients[$plugin_id]->submitConfigurationForm($subform, $subform_state);
+
+      // Save plugin settings.
+      $this->configFactory()
+        ->getEditable('openid_connect.settings.' . $plugin_id)
+        ->set('settings', $subform_state->getValues())
+        ->save();
+    }
+  }
+
+  /**
+   * Return array of OpenID Connect client plugins.
+   *
+   * As the list of clients is used several times during form submission,
+   * we are using this little helper method and a static collection of
+   * initialized client plugins for this form.
+   *
+   * @return \Drupal\openid_connect\Plugin\OpenIDConnectClientInterface[]
+   *   Associative array of OpenID Connect client plugins with client IDs
+   *   as keys and the corresponding initialized client plugins as values.
+   */
+  protected function getClients() {
+    if (!isset(self::$clients)) {
+      $clients = [];
+
+      $definitions = $this->pluginManager->getDefinitions();
+
+      ksort($definitions);
+      foreach ($definitions as $client_name => $client_plugin) {
+        $configuration = $this->configFactory()
+          ->getEditable('openid_connect.settings.' . $client_name)
+          ->get('settings');
+
+        /* @var \Drupal\openid_connect\Plugin\OpenIDConnectClientInterface $client */
+        $client = $this->pluginManager->createInstance(
+          $client_name,
+          $configuration ?: []
+        );
+
+        $clients[$client_name] = $client;
+      }
+
+      self::$clients = $clients;
     }
 
+    return self::$clients;
   }
 
 }
