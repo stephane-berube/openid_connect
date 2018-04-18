@@ -7,6 +7,7 @@ use Drupal\Core\Config\ConfigFactory;
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Messenger\MessengerInterface;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\Session\AccountProxy;
 use Drupal\openid_connect\OpenIDConnectSession;
@@ -65,6 +66,13 @@ class OpenIDConnectAccountsForm extends FormBase implements ContainerInjectionIn
   protected $configFactory;
 
   /**
+   * The Messenger service.
+   *
+   * @var \Drupal\Core\Messenger\MessengerInterface
+   */
+  protected $messenger;
+
+  /**
    * The constructor.
    *
    * @param \Drupal\Core\Session\AccountProxy $current_user
@@ -79,14 +87,17 @@ class OpenIDConnectAccountsForm extends FormBase implements ContainerInjectionIn
    *   The OpenID Connect client manager.
    * @param \Drupal\Core\Config\ConfigFactory $config_factory
    *   The config factory.
+   * @param \Drupal\Core\Messenger\MessengerInterface $messenger
+   *   The messenger service.
    */
   public function __construct(
-      AccountProxy $current_user,
-      OpenIDConnectSession $session,
-      OpenIDConnectAuthmap $authmap,
-      OpenIDConnectClaims $claims,
-      OpenIDConnectClientManager $plugin_manager,
-      ConfigFactory $config_factory
+    AccountProxy $current_user,
+    OpenIDConnectSession $session,
+    OpenIDConnectAuthmap $authmap,
+    OpenIDConnectClaims $claims,
+    OpenIDConnectClientManager $plugin_manager,
+    ConfigFactory $config_factory,
+    MessengerInterface $messenger
   ) {
 
     $this->currentUser = $current_user;
@@ -95,6 +106,7 @@ class OpenIDConnectAccountsForm extends FormBase implements ContainerInjectionIn
     $this->claims = $claims;
     $this->pluginManager = $plugin_manager;
     $this->configFactory = $config_factory;
+    $this->messenger = $messenger;
   }
 
   /**
@@ -192,12 +204,12 @@ class OpenIDConnectAccountsForm extends FormBase implements ContainerInjectionIn
     if ($op === 'disconnect') {
       $this->authmap->deleteAssociation($form_state->get('account')->id(), $client_name);
       $client = $this->pluginManager->getDefinition($client_name);
-      drupal_set_message($this->t('Account successfully disconnected from @client.', ['@client' => $client['label']]));
+      $this->messenger->addMessage($this->t('Account successfully disconnected from @client.', ['@client' => $client['label']]));
       return;
     }
 
     if ($this->currentUser->id() !== $form_state->get('account')->id()) {
-      drupal_set_message($this->t("You cannot connect another user's account."), 'error');
+      $this->messenger->addError($this->t("You cannot connect another user's account."));
       return;
     }
 
