@@ -16,7 +16,7 @@ use Exception;
  *   label = @Translation("Facebook")
  * )
  */
-class Facebook extends OpenIDConnectClientBase {
+class OpenIDConnectFacebookClient extends OpenIDConnectClientBase {
 
   /**
    * Facebook API versions.

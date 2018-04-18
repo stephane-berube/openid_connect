@@ -16,7 +16,7 @@ use Exception;
  *   label = @Translation("GitHub")
  * )
  */
-class Github extends OpenIDConnectClientBase {
+class OpenIDConnectGithubClient extends OpenIDConnectClientBase {
 
   /**
    * A mapping of OpenID Connect user claims to GitHub user properties.

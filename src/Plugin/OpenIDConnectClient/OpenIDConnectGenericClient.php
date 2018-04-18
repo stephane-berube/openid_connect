@@ -16,7 +16,7 @@ use Drupal\openid_connect\Plugin\OpenIDConnectClientBase;
  *   label = @Translation("Generic")
  * )
  */
-class Generic extends OpenIDConnectClientBase {
+class OpenIDConnectGenericClient extends OpenIDConnectClientBase {
 
   /**
    * {@inheritdoc}

@@ -15,7 +15,7 @@ use Drupal\openid_connect\Plugin\OpenIDConnectClientBase;
  *   label = @Translation("LinkedIn")
  * )
  */
-class Linkedin extends OpenIDConnectClientBase {
+class OpenIDConnectLinkedinClient extends OpenIDConnectClientBase {
 
   /**
    * {@inheritdoc}

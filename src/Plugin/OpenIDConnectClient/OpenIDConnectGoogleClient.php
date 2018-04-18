@@ -15,7 +15,7 @@ use Drupal\openid_connect\Plugin\OpenIDConnectClientBase;
  *   label = @Translation("Google")
  * )
  */
-class Google extends OpenIDConnectClientBase {
+class OpenIDConnectGoogleClient extends OpenIDConnectClientBase {
 
   /**
    * {@inheritdoc}
