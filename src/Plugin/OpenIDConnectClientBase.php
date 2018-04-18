@@ -21,7 +21,6 @@ use Symfony\Component\HttpFoundation\RequestStack;
  * Base class for OpenID Connect client plugins.
  */
 abstract class OpenIDConnectClientBase extends PluginBase implements OpenIDConnectClientInterface, ContainerFactoryPluginInterface {
-
   use StringTranslationTrait;
 
   /**
@@ -170,8 +169,22 @@ abstract class OpenIDConnectClientBase extends PluginBase implements OpenIDConne
    * {@inheritdoc}
    */
   public function validateConfigurationForm(array &$form, FormStateInterface $form_state) {
-    // No need to do anything, but make the function have a body anyway
-    // so that it's callable by overriding methods.
+    // Provider label as array for StringTranslationTrait::t() argument.
+    $provider = [
+      '@provider' => $this->getPluginDefinition()['label'],
+    ];
+
+    // Get plugin setting values.
+    $configuration = $form_state->getValues();
+
+    // Whether a client ID is given.
+    if (empty($configuration['client_id'])) {
+      $form_state->setErrorByName('client_id', $this->t('The client ID is missing for @provider.', $provider));
+    }
+    // Whether a client secret is given.
+    if (empty($configuration['client_secret'])) {
+      $form_state->setErrorByName('client_secret', $this->t('The client secret is missing for @provider.', $provider));
+    }
   }
 
   /**
