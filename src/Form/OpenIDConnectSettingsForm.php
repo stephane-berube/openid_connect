@@ -192,7 +192,7 @@ class OpenIDConnectSettingsForm extends ConfigFormBase implements ContainerInjec
     ];
 
     $properties = $this->entityFieldManager->getFieldDefinitions('user', 'user');
-    $properties_skip = $this->openIDConnect->userPropertiesToSkip();
+    $properties_skip = $this->openIDConnect->userPropertiesIgnore();
     $claims = $this->claims->getOptions();
     $mappings = $settings->get('userinfo_mappings');
     foreach ($properties as $property_name => $property) {

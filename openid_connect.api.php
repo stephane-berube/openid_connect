@@ -39,7 +39,7 @@ function hook_openid_connect_claims_alter(array &$claims) {
  *
  * @ingroup openid_connect_api
  */
-function hook_openid_connect_openid_connect_client_info_alter(array &$client_info) {
+function hook_openid_connect_client_info_alter(array &$client_info) {
   $client_info['generic'] = [
     'id' => 'generic',
     'label' => [
@@ -55,7 +55,7 @@ function hook_openid_connect_openid_connect_client_info_alter(array &$client_inf
 }
 
 /**
- * Alter the user properties to be skipped for mapping.
+ * Alter the user properties to be ignored for mapping.
  *
  * This hook is called before OpenID Connect maps the user information from the
  * identity provider with the Drupal user account.
@@ -77,7 +77,7 @@ function hook_openid_connect_openid_connect_client_info_alter(array &$client_inf
  *
  * @ingroup openid_connect_api
  */
-function hook_openid_connect_user_properties_to_skip_alter(array &$properties_to_skip, array $context) {
+function hook_openid_connect_user_properties_ignore_alter(array &$properties_to_skip, array $context) {
   // Allow to map the username to a property from the provider.
   if ($context['plugin_id'] == 'generic') {
     unset($properties_to_skip['name']);
@@ -258,4 +258,17 @@ function hook_openid_connect_userinfo_save(UserInterface $account, array $contex
   foreach ($my_info as $key => $value) {
     $account->set('field_' . $key, $value);
   }
+}
+
+/**
+ * Alter hook to alter the user properties to be skipped for mapping.
+ *
+ * @param array $properties_to_skip
+ *   An array of of properties to skip.
+ *
+ * @ingroup openid_connect_api
+ * @deprecated in openid_connect 8.x-1.x-beta6, will be removed in 8.x-1.x-rc1.
+ *   Use hook_openid_connect_user_properties_ignore_alter() instead.
+ */
+function hook_openid_connect_user_properties_to_skip_alter(array &$properties_to_skip) {
 }

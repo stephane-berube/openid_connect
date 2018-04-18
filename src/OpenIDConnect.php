@@ -141,15 +141,15 @@ class OpenIDConnect {
   }
 
   /**
-   * Return user properties that can be skipped when mapping user profile info.
+   * Return user properties that can be ignored when mapping user profile info.
    *
    * @param array $context
    *   Optional: Array with context information, if this function is called
    *   within the context of user authorization.
    *   Defaults to an empty array.
    */
-  public function userPropertiesToSkip(array $context = []) {
-    $properties_to_skip = [
+  public function userPropertiesIgnore(array $context = []) {
+    $properties_ignore = [
       'uid',
       'uuid',
       'langcode',
@@ -167,9 +167,13 @@ class OpenIDConnect {
       'roles',
       'default_langcode',
     ];
-    $this->moduleHandler->alter('openid_connect_user_properties_to_skip', $properties_to_skip, $context);
-    $properties_to_skip = array_unique($properties_to_skip);
-    return array_combine($properties_to_skip, $properties_to_skip);
+    $this->moduleHandler->alter('openid_connect_user_properties_ignore', $properties_ignore, $context);
+    // Invoke deprecated hook with deprecation error message.
+    // @todo Remove in RC1.
+    $this->moduleHandler->alterDeprecated('hook_openid_connect_user_properties_to_skip_alter() is deprecated and will be removed in 8.x-1.x-rc1.', 'openid_connect_user_properties_to_skip', $properties_ignore);
+
+    $properties_ignore = array_unique($properties_ignore);
+    return array_combine($properties_ignore, $properties_ignore);
   }
 
   /**
@@ -627,7 +631,7 @@ class OpenIDConnect {
   public function saveUserinfo(UserInterface $account, array $context) {
     $userinfo = $context['userinfo'];
     $properties = $this->entityFieldManager->getFieldDefinitions('user', 'user');
-    $properties_skip = $this->userPropertiesToSkip($context);
+    $properties_skip = $this->userPropertiesIgnore($context);
     foreach ($properties as $property_name => $property) {
       if (isset($properties_skip[$property_name])) {
         continue;
