@@ -136,7 +136,7 @@ function hook_openid_connect_userinfo_alter(array &$userinfo, array $context) {
  *   - plugin_id:      The plugin identifier.
  *   - sub:            The remote user identifier.
  *
- * @return \Drupal\user\UserInterface|bool
+ * @return \Drupal\user\UserInterface|false
  *   A user account for a certain user to authorize, FALSE, if the user shall
  *   not be logged in, or TRUE for successful hook execution.
  *
