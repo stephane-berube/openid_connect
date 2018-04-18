@@ -173,36 +173,6 @@ class OpenIDConnect {
   }
 
   /**
-   * Connect an external OpenID Connect account to a Drupal user account.
-   *
-   * @todo Evaluate, whether this alias method can be removed.
-   *
-   * @param object $account
-   *   The Drupal user object.
-   * @param string $client_name
-   *   The client machine name.
-   * @param string $sub
-   *   The 'sub' property identifying the external account.
-   */
-  public function connectAccount($account, $client_name, $sub) {
-    $this->authmap->createAssociation($account, $client_name, $sub);
-  }
-
-  /**
-   * Disconnect an external OpenID Connect account from a Drupal user account.
-   *
-   * @todo Evaluate, whether this alias method can be removed.
-   *
-   * @param object $account
-   *   The Drupal user object.
-   * @param string $client_name
-   *   The client machine name.
-   */
-  public function disconnectAccount($account, $client_name) {
-    $this->authmap->deleteAssociation($account->id(), $client_name);
-  }
-
-  /**
    * Get the 'sub' property from the user data and/or user claims.
    *
    * The 'sub' (Subject Identifier) is a unique ID for the external provider to
@@ -338,7 +308,7 @@ class OpenIDConnect {
           ->get('connect_existing_users');
         if ($connect_existing_users) {
           // Connect existing user account with this sub.
-          $this->connectAccount($account, $client->getPluginId(), $sub);
+          $this->authmap->createAssociation($account, $client->getPluginId(), $sub);
         }
         else {
           $this->messenger->addError($this->t('The e-mail address is already taken: @email', [
@@ -495,7 +465,7 @@ class OpenIDConnect {
 
     if (!$account) {
       $account = $this->userStorage->load($this->currentUser->id());
-      $this->connectAccount($account, $client->getPluginId(), $sub);
+      $this->authmap->createAssociation($account, $client->getPluginId(), $sub);
     }
 
     $always_save_userinfo = $this->configFactory->get('openid_connect.settings')->get('always_save_userinfo');
@@ -606,7 +576,7 @@ class OpenIDConnect {
    * @return string
    *   A unique username.
    */
-  protected function generateUsername($sub, array $userinfo, $client_name) {
+  public function generateUsername($sub, array $userinfo, $client_name) {
     $name = 'oidc_' . $client_name . '_' . md5($sub);
     $candidates = ['preferred_username', 'name'];
     foreach ($candidates as $candidate) {
@@ -633,7 +603,7 @@ class OpenIDConnect {
    * @return bool
    *   TRUE if a user exists with the given name, FALSE otherwise.
    */
-  protected function usernameExists($name) {
+  public function usernameExists($name) {
     $users = $this->userStorage->loadByProperties([
       'name' => $name,
     ]);
