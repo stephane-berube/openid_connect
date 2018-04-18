@@ -607,7 +607,7 @@ class OpenIDConnect {
    *   A unique username.
    */
   protected function generateUsername($sub, array $userinfo, $client_name) {
-    $name = 'oidc_' . $client_name . '_' . $sub;
+    $name = 'oidc_' . $client_name . '_' . md5($sub);
     $candidates = ['preferred_username', 'name'];
     foreach ($candidates as $candidate) {
       if (!empty($userinfo[$candidate])) {
