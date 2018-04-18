@@ -9,6 +9,7 @@ use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\Session\AccountProxy;
+use Drupal\openid_connect\OpenIDConnectSession;
 use Drupal\openid_connect\OpenIDConnectAuthmap;
 use Drupal\openid_connect\OpenIDConnectClaims;
 use Drupal\openid_connect\Plugin\OpenIDConnectClientManager;
@@ -29,21 +30,28 @@ class OpenIDConnectAccountsForm extends FormBase implements ContainerInjectionIn
   protected $currentUser;
 
   /**
-   * Drupal\openid_connect\OpenIDConnectAuthmap definition.
+   * The OpenID Connect session service.
+   *
+   * @var \Drupal\openid_connect\OpenIDConnectSession
+   */
+  protected $session;
+
+  /**
+   * The OpenID Connect authmap service.
    *
    * @var \Drupal\openid_connect\OpenIDConnectAuthmap
    */
   protected $authmap;
 
   /**
-   * Drupal\openid_connect\OpenIDConnectClaims definition.
+   * The OpenID Connect claims service.
    *
    * @var \Drupal\openid_connect\OpenIDConnectClaims
    */
   protected $claims;
 
   /**
-   * Drupal\openid_connect\Plugin\OpenIDConnectClientManager definition.
+   * The OpenID Connect client plugin manager.
    *
    * @var \Drupal\openid_connect\Plugin\OpenIDConnectClientManager
    */
@@ -61,6 +69,8 @@ class OpenIDConnectAccountsForm extends FormBase implements ContainerInjectionIn
    *
    * @param \Drupal\Core\Session\AccountProxy $current_user
    *   The current user account.
+   * @param \Drupal\openid_connect\OpenIDConnectSession $session
+   *   The OpenID Connect service.
    * @param \Drupal\openid_connect\OpenIDConnectAuthmap $authmap
    *   The authmap storage.
    * @param \Drupal\openid_connect\OpenIDConnectClaims $claims
@@ -72,6 +82,7 @@ class OpenIDConnectAccountsForm extends FormBase implements ContainerInjectionIn
    */
   public function __construct(
       AccountProxy $current_user,
+      OpenIDConnectSession $session,
       OpenIDConnectAuthmap $authmap,
       OpenIDConnectClaims $claims,
       OpenIDConnectClientManager $plugin_manager,
@@ -79,6 +90,7 @@ class OpenIDConnectAccountsForm extends FormBase implements ContainerInjectionIn
   ) {
 
     $this->currentUser = $current_user;
+    $this->session = $session;
     $this->authmap = $authmap;
     $this->claims = $claims;
     $this->pluginManager = $plugin_manager;
@@ -91,6 +103,7 @@ class OpenIDConnectAccountsForm extends FormBase implements ContainerInjectionIn
   public static function create(ContainerInterface $container) {
     return new static(
       $container->get('current_user'),
+      $container->get('openid_connect.session'),
       $container->get('openid_connect.authmap'),
       $container->get('openid_connect.claims'),
       $container->get('plugin.manager.openid_connect_client.processor'),
@@ -188,7 +201,7 @@ class OpenIDConnectAccountsForm extends FormBase implements ContainerInjectionIn
       return;
     }
 
-    openid_connect_save_destination();
+    $this->session->saveDestination();
 
     $configuration = $this->config('openid_connect.settings.' . $client_name)
       ->get('settings');

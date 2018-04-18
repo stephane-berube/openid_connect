@@ -9,6 +9,7 @@ use Drupal\Core\Routing\Access\AccessInterface;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\Url;
 use Drupal\openid_connect\Plugin\OpenIDConnectClientManager;
+use Drupal\openid_connect\OpenIDConnect;
 use Drupal\openid_connect\OpenIDConnectStateToken;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -51,15 +52,24 @@ class OpenIDConnectRedirectController extends ControllerBase implements AccessIn
   protected $currentUser;
 
   /**
+   * The OpenID Connect service.
+   *
+   * @var \Drupal\openid_connect\OpenIDConnect
+   */
+  protected $openIDConnect;
+
+  /**
    * {@inheritdoc}
    */
   public function __construct(
     OpenIDConnectClientManager $plugin_manager,
+    OpenIDConnect $openid_connect,
     RequestStack $request_stack,
     LoggerChannelFactoryInterface $logger_factory,
     AccountInterface $current_user
   ) {
     $this->pluginManager = $plugin_manager;
+    $this->openIDConnect = $openid_connect;
     $this->requestStack = $request_stack;
     $this->loggerFactory = $logger_factory;
     $this->currentUser = $current_user;
@@ -71,6 +81,7 @@ class OpenIDConnectRedirectController extends ControllerBase implements AccessIn
   public static function create(ContainerInterface $container) {
     return new static(
       $container->get('plugin.manager.openid_connect_client.processor'),
+      $container->get('openid_connect.openid_connect'),
       $container->get('request_stack'),
       $container->get('logger.factory'),
       $container->get('current_user')
@@ -166,7 +177,7 @@ class OpenIDConnectRedirectController extends ControllerBase implements AccessIn
       $tokens = $client->retrieveTokens($query->get('code'));
       if ($tokens) {
         if ($parameters['op'] === 'login') {
-          $success = openid_connect_complete_authorization($client, $tokens, $destination);
+          $success = $this->openIDConnect->completeAuthorization($client, $tokens, $destination);
 
           $register = $this->config('user.settings')->get('register');
           if (!$success && $register !== USER_REGISTER_ADMINISTRATORS_ONLY) {
@@ -174,7 +185,7 @@ class OpenIDConnectRedirectController extends ControllerBase implements AccessIn
           }
         }
         elseif ($parameters['op'] === 'connect' && $parameters['connect_uid'] === $this->currentUser->id()) {
-          $success = openid_connect_connect_current_user($client, $tokens);
+          $success = $this->openIDConnect->connectCurrentUser($client, $tokens);
           if ($success) {
             drupal_set_message($this->t('Account successfully connected with @provider.', $provider_param));
           }

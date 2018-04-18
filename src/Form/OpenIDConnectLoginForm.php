@@ -5,6 +5,7 @@ namespace Drupal\openid_connect\Form;
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\openid_connect\OpenIDConnectSession;
 use Drupal\openid_connect\OpenIDConnectClaims;
 use Drupal\openid_connect\Plugin\OpenIDConnectClientManager;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -15,6 +16,13 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  * @package Drupal\openid_connect\Form
  */
 class OpenIDConnectLoginForm extends FormBase implements ContainerInjectionInterface {
+
+  /**
+   * The OpenID Connect session service.
+   *
+   * @var \Drupal\openid_connect\OpenIDConnectSession
+   */
+  protected $session;
 
   /**
    * Drupal\openid_connect\Plugin\OpenIDConnectClientManager definition.
@@ -33,16 +41,19 @@ class OpenIDConnectLoginForm extends FormBase implements ContainerInjectionInter
   /**
    * The constructor.
    *
+   * @param \Drupal\openid_connect\OpenIDConnectSession $session
+   *   The OpenID Connect session service.
    * @param \Drupal\openid_connect\Plugin\OpenIDConnectClientManager $plugin_manager
    *   The plugin manager.
    * @param \Drupal\openid_connect\OpenIDConnectClaims $claims
    *   The OpenID Connect claims.
    */
   public function __construct(
+      OpenIDConnectSession $session,
       OpenIDConnectClientManager $plugin_manager,
       OpenIDConnectClaims $claims
   ) {
-
+    $this->session = $session;
     $this->pluginManager = $plugin_manager;
     $this->claims = $claims;
   }
@@ -52,6 +63,7 @@ class OpenIDConnectLoginForm extends FormBase implements ContainerInjectionInter
    */
   public static function create(ContainerInterface $container) {
     return new static(
+      $container->get('openid_connect.session'),
       $container->get('plugin.manager.openid_connect_client.processor'),
       $container->get('openid_connect.claims')
     );
@@ -92,7 +104,7 @@ class OpenIDConnectLoginForm extends FormBase implements ContainerInjectionInter
    * {@inheritdoc}
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
-    openid_connect_save_destination();
+    $this->session->saveDestination();
     $client_name = $form_state->getTriggeringElement()['#name'];
 
     $configuration = $this->config('openid_connect.settings.' . $client_name)

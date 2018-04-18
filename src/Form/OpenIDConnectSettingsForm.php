@@ -8,6 +8,7 @@ use Drupal\Core\Entity\EntityFieldManagerInterface;
 use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Form\SubformState;
+use Drupal\openid_connect\OpenIDConnect;
 use Drupal\openid_connect\OpenIDConnectClaims;
 use Drupal\openid_connect\Plugin\OpenIDConnectClientManager;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -18,6 +19,13 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  * @package Drupal\openid_connect\Form
  */
 class OpenIDConnectSettingsForm extends ConfigFormBase implements ContainerInjectionInterface {
+
+  /**
+   * The OpenID Connect service.
+   *
+   * @var \Drupal\openid_connect\OpenIDConnect
+   */
+  protected $openIDConnect;
 
   /**
    * Drupal\openid_connect\Plugin\OpenIDConnectClientManager definition.
@@ -52,6 +60,8 @@ class OpenIDConnectSettingsForm extends ConfigFormBase implements ContainerInjec
    *
    * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
    *   The config factory.
+   * @param \Drupal\openid_connect\OpenIDConnect $openid_connect
+   *   The OpenID Connect service.
    * @param \Drupal\openid_connect\Plugin\OpenIDConnectClientManager $plugin_manager
    *   The plugin manager.
    * @param \Drupal\Core\Entity\EntityFieldManagerInterface $entity_field_manager
@@ -61,11 +71,13 @@ class OpenIDConnectSettingsForm extends ConfigFormBase implements ContainerInjec
    */
   public function __construct(
       ConfigFactoryInterface $config_factory,
+      OpenIDConnect $openid_connect,
       OpenIDConnectClientManager $plugin_manager,
       EntityFieldManagerInterface $entity_field_manager,
       OpenIDConnectClaims $claims
   ) {
     parent::__construct($config_factory);
+    $this->openIDConnect = $openid_connect;
     $this->pluginManager = $plugin_manager;
     $this->entityFieldManager = $entity_field_manager;
     $this->claims = $claims;
@@ -77,6 +89,7 @@ class OpenIDConnectSettingsForm extends ConfigFormBase implements ContainerInjec
   public static function create(ContainerInterface $container) {
     return new static(
       $container->get('config.factory'),
+      $container->get('openid_connect.openid_connect'),
       $container->get('plugin.manager.openid_connect_client.processor'),
       $container->get('entity_field.manager'),
       $container->get('openid_connect.claims')
@@ -179,7 +192,7 @@ class OpenIDConnectSettingsForm extends ConfigFormBase implements ContainerInjec
     ];
 
     $properties = $this->entityFieldManager->getFieldDefinitions('user', 'user');
-    $properties_skip = _openid_connect_user_properties_to_skip();
+    $properties_skip = $this->openIDConnect->userPropertiesToSkip();
     $claims = $this->claims->getOptions();
     $mappings = $settings->get('userinfo_mappings');
     foreach ($properties as $property_name => $property) {
