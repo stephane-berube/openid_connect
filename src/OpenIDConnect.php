@@ -366,6 +366,12 @@ class OpenIDConnect {
       $this->authmap->createAssociation($account, $client->getPluginId(), $sub);
     }
 
+    // Whether the user should not be logged in due to pending administrator
+    // approval.
+    if ($account->isBlocked()) {
+      return FALSE;
+    }
+
     $this->loginUser($account);
 
     $context = [
