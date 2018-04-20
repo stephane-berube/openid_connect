@@ -133,7 +133,7 @@ class OpenIDConnect {
     $this->userStorage = $entity_type_manager->getStorage('user');
     $this->entityFieldManager = $entity_field_manager;
     $this->currentUser = $current_user;
-    $this->user = $user_data;
+    $this->userData = $user_data;
     $this->emailValidator = $email_validator;
     $this->messenger = $messenger;
     $this->moduleHandler = $module_handler;
