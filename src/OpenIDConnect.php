@@ -378,7 +378,8 @@ class OpenIDConnect {
     $this->moduleHandler->invokeAll(
       'openid_connect_post_authorize',
       [
-        $tokens, $account, $userinfo, $client->getPluginId(),
+        $account,
+        $context,
       ]
     );
 
