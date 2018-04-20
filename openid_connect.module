@@ -62,7 +62,7 @@ function openid_connect_entity_property_info_alter(&$info) {
  */
 function openid_connect_user_insert(EntityInterface $entity) {
   if (isset($entity->openid_connect_client) && isset($entity->openid_connect_sub)) {
-    \Drupal::service('openid_connect.openid_connect')->connectAccount($entity, $entity->openid_connect_client, $entity->openid_connect_sub);
+    \Drupal::service('openid_connect.authmap')->createAssociation($entity, $entity->openid_connect_client, $entity->openid_connect_sub);
   }
 }
 

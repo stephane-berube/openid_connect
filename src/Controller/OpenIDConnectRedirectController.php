@@ -190,9 +190,27 @@ class OpenIDConnectRedirectController extends ControllerBase implements AccessIn
         if ($parameters['op'] === 'login') {
           $success = $this->openIDConnect->completeAuthorization($client, $tokens, $destination);
 
-          $register = $this->config('user.settings')->get('register');
-          if (!$success && $register !== USER_REGISTER_ADMINISTRATORS_ONLY) {
-            $this->messenger->addError($this->t('Logging in with @provider could not be completed due to an error.', $provider_param));
+          if (!$success) {
+            // Check Drupal user register settings before saving.
+            $register = $this->config('user.settings')->get('register');
+            // Respect possible override from OpenID-Connect settings.
+            $register_override = $this->config('openid_connect.settings')
+              ->get('override_registration_settings');
+            if ($register === USER_REGISTER_ADMINISTRATORS_ONLY && $register_override) {
+              $register = USER_REGISTER_VISITORS;
+            }
+
+            switch ($register) {
+              case USER_REGISTER_ADMINISTRATORS_ONLY:
+              case USER_REGISTER_VISITORS_ADMINISTRATIVE_APPROVAL:
+                // Skip creating an error message, as completeAuthorization
+                // already added according messages.
+                break;
+
+              default:
+                $this->messenger->addError($this->t('Logging in with @provider could not be completed due to an error.', $provider_param));
+                break;
+            }
           }
         }
         elseif ($parameters['op'] === 'connect' && $parameters['connect_uid'] === $this->currentUser->id()) {

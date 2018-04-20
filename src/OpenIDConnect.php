@@ -369,6 +369,11 @@ class OpenIDConnect {
     // Whether the user should not be logged in due to pending administrator
     // approval.
     if ($account->isBlocked()) {
+      if (empty($context['is_new'])) {
+        $this->messenger->addError($this->t('The username %name has not been activated or is blocked.', [
+          '%name' => $account->getAccountName(),
+        ]));
+      }
       return FALSE;
     }
 
