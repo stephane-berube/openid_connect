@@ -137,6 +137,9 @@ abstract class OpenIDConnectClientBase extends PluginBase implements OpenIDConne
    * {@inheritdoc}
    */
   public function buildConfigurationForm(array $form, FormStateInterface $form_state) {
+    $language_none = \Drupal::languageManager()
+            ->getLanguage(LanguageInterface::LANGCODE_NOT_APPLICABLE);
+
     $redirect_url = URL::fromRoute(
       'openid_connect.redirect_controller_redirect',
       [
@@ -144,6 +147,7 @@ abstract class OpenIDConnectClientBase extends PluginBase implements OpenIDConne
       ],
       [
         'absolute' => TRUE,
+        'language' => $language_none,
       ]
     );
     $form['redirect_url'] = [
