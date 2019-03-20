@@ -51,6 +51,16 @@ class OpenIDConnectSession {
     $current_path = $this->currentPath->getPath();
     $path = ($current_path == '/user/login') ? '/user' : $current_path;
 
+    // ISED
+    // Redirect to whatever page we were on before logging in since
+    // `$current_path` always seems to be '/user/login' in our case
+    //
+    // TODO: whitelist where we redirect so we don't do it blindly...
+    // TODO: save query params as per below
+    if (isset($_SERVER['HTTP_REFERER'])) {
+        $path = parse_url($_SERVER['HTTP_REFERER'], PHP_URL_PATH);
+    }
+
     // The destination could contain query parameters. Ensure that they are
     // preserved.
     $query = $this->requestStack->getCurrentRequest()->getQueryString();
