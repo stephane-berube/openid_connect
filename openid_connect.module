@@ -114,6 +114,9 @@ function openid_connect_form_user_form_alter(&$form, &$form_state) {
   $account_form['current_pass_required_values']['#value'] = [];
   $account_form['pass']['#access'] = FALSE;
   $account_form['pass']['#required'] = FALSE;
+
+  $account_form['mail']['#access'] = FALSE;
+  $account_form['mail']['#required'] = FALSE;
 }
 
 /**
