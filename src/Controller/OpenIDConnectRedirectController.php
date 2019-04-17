@@ -200,6 +200,12 @@ class OpenIDConnectRedirectController extends ControllerBase implements AccessIn
                 drupal_set_message($this->t('Logging in with @provider could not be completed due to an error.', $provider_param), 'error');
                 break;
             }
+          } else {
+            // API Store specific cookie so that other platforms can detect whether
+            // we're logged-in to SSO or not.
+            //
+            // We're logging-in, so set the cookie
+            setcookie('GCAPIStoreLoggedInState', 'true', time()+86400, '/', 'api.canada.ca');
           }
         }
         elseif ($parameters['op'] === 'connect' && $parameters['connect_uid'] === $this->currentUser->id()) {
