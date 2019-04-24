@@ -554,9 +554,11 @@ class OpenIDConnect {
    *   The user object or FALSE on failure.
    */
   public function createUser($sub, array $userinfo, $client_name, $status = 1) {
+    $name = $this->generateUsername($sub, $userinfo, $client_name);
+
     /** @var \Drupal\user\UserInterface $account */
     $account = $this->userStorage->create([
-      'name' => $this->generateUsername($sub, $userinfo, $client_name),
+      'name' => $name,
       'pass' => user_password(),
       'mail' => $userinfo['email'],
       'init' => $userinfo['email'],
@@ -565,6 +567,19 @@ class OpenIDConnect {
       'openid_connect_sub' => $sub,
     ]);
     $account->save();
+
+    $config = \Drupal::config('api_store.settings');
+    $replicate_endpoint = $config->get('replicate_endpoint');
+
+    $http_client = \Drupal::httpClient();
+
+    try {
+        $res = $http_client->request('POST', $replicate_endpoint, [
+            'body' => $name
+        ]);
+    } catch (\GuzzleHttp\Exception\ClientException $e) {
+        // pass
+    }
 
     return $account;
   }
