@@ -205,7 +205,15 @@ class OpenIDConnectRedirectController extends ControllerBase implements AccessIn
             // we're logged-in to SSO or not.
             //
             // We're logging-in, so set the cookie
-            setcookie('GCAPIStoreLoggedInState', 'true', time()+86400, '/', \Drupal::request()->getHost());
+            global $base_url;
+            $base_url_parts = parse_url($base_url);
+            $host = $base_url_parts['host'];
+            if ($host === 'dev.api.canada.ca'){
+               setcookie('DevGCAPIStoreLoggedInState', 'true', time()+86400, '/', \Drupal::request()->getHost());
+            }
+            else{
+               setcookie('GCAPIStoreLoggedInState', 'true', time()+86400, '/', \Drupal::request()->getHost());
+            }
           }
         }
         elseif ($parameters['op'] === 'connect' && $parameters['connect_uid'] === $this->currentUser->id()) {
